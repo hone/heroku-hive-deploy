@@ -42,7 +42,7 @@ class Heroku::Command::Deploy < Heroku::Command::BaseWithApp
   private
   def app_build(env)
     change_env(env) do
-      `bundle install`
+      `npm install; npm run build`
     end
   end
 
