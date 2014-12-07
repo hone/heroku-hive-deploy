@@ -47,7 +47,7 @@ class Heroku::Command::Deploy < Heroku::Command::BaseWithApp
   end
 
   def change_env(env)
-    old_env = ENV.to_h
+    old_env = ENV.to_hash
     env.each {|key, value| ENV[key] = value }
 
     yield
