@@ -12,6 +12,7 @@ class Heroku::Command::Deploy < Heroku::Command::BaseWithApp
     git_version = nil
     output_stream_url = nil
 
+    get_url = nil
     Okyakusan.start do |client|
       get_url, put_url = create_source(client)
 
@@ -26,6 +27,10 @@ class Heroku::Command::Deploy < Heroku::Command::BaseWithApp
         display "Uploading source code to #{put_url}"
         upload_code(tar_file, put_url)
       end
+    end
+
+    Okyakusan.start do |client|
+      display "Using tar from #{get_url}"
 
       resp = client.post("/apps/#{app}/builds", {
         source_blob: {
@@ -42,7 +47,7 @@ class Heroku::Command::Deploy < Heroku::Command::BaseWithApp
   private
   def app_build(env)
     change_env(env) do
-      `npm install; npm run build`
+      `npm install; npm run build; rm -rf node_modules`
     end
   end
 
