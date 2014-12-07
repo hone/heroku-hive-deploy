@@ -87,7 +87,7 @@ class Heroku::Command::Deploy < Heroku::Command::BaseWithApp
     `curl "#{put_url}" -X PUT -H 'Content-Type:' --data-binary @#{tar_file}`
   end
 
-  def stream_content(url, io = $stdout)
+  def stream_content(url, io = $stdout, ioerror = $stderr)
     uri = URI(url)
 
     Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
@@ -99,5 +99,7 @@ class Heroku::Command::Deploy < Heroku::Command::BaseWithApp
         end
       end
     end
+  rescue StandardError => e
+    ioerror.puts "Error reading: #{uri}\n#{e.message}\n#{e.backtrace.join("\n")}"
   end
 end
