@@ -37,6 +37,10 @@ class Heroku::Command::Deploy < Heroku::Command::BaseWithApp
   end
 
   private
+  def app_build
+    `bundle install`
+  end
+
   def prepare_tar(tmpdir, uri)
     git_version = nil
 
@@ -46,8 +50,8 @@ class Heroku::Command::Deploy < Heroku::Command::BaseWithApp
       `git clone #{uri} #{dir}`
 
       Dir.chdir(dir) do
+        app_build
         git_version = `git rev-parse HEAD`.chomp
-        `bundle install`
         `tar czfv ../build.tgz *`
       end
 
