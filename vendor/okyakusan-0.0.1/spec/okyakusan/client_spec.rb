@@ -23,12 +23,12 @@ RSpec.describe Okyakusan::Client do
     end
 
     it "should work on edge versions" do
-      response = client.get("/apps/#{app}/env-vars", version: "edge")
+      response = client.get("/apps/#{app}/env-vars", "edge")
       expect(response.code).to eq("200")
     end
 
     it "should break on v2 api" do
-      response = client.get("/apps/#{app}/env-vars", version: "2")
+      response = client.get("/apps/#{app}/env-vars", "2")
       expect(response.code).to eq("500")
     end
   end
@@ -50,7 +50,7 @@ RSpec.describe Okyakusan::Client do
         config: { "db-version" => "1.2.3" },
         plan: addon
       }
-      response = client.post("/apps/#{app}/addons", data: data)
+      response = client.post("/apps/#{app}/addons", data)
       expect(response.code).to eq("200")
     end
 
@@ -69,7 +69,7 @@ RSpec.describe Okyakusan::Client do
         plan: plan
       }
 
-      response = client.patch("/apps/#{app}/addons/#{addon}", data: data)
+      response = client.patch("/apps/#{app}/addons/#{addon}", data)
       expect(response.code).to eq("200")
     end
   end

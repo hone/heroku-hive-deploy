@@ -24,12 +24,12 @@ class Heroku::Command::Deploy < Heroku::Command::BaseWithApp
         upload_code(tar_file, put_url)
       end
 
-      resp = client.post("/apps/#{app}/builds", version: "edge", data: {
+      resp = client.post("/apps/#{app}/builds", {
         source_blob: {
           url: get_url,
           version: git_version
         }
-      })
+      }, "edge")
       output_stream_url = JSON.parse(resp.body)["output_stream_url"]
     end
 

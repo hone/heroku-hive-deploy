@@ -12,28 +12,28 @@ module Okyakusan
     end
 
     %w(get delete).each do |method_name|
-      define_method(method_name) do |path, version: false|
+      define_method(method_name) do |path, version = nil|
         klass   = Net::HTTP.const_get(method_name.capitalize)
         request = klass.new(path)
 
-        setup_request(request, version: version)
+        setup_request(request, version)
         @http.request(request)
       end
     end
 
     %w(post patch).each do |method_name|
-      define_method(method_name) do |path, data: nil, version: nil|
+      define_method(method_name) do |path, data = nil, version = nil|
         klass   = Net::HTTP.const_get(method_name.capitalize)
         request = klass.new(path)
 
-        setup_request(request, version: version)
+        setup_request(request, version)
         request.body = data.to_json if data
         @http.request(request)
       end
     end
 
     private
-    def setup_request(request, version:)
+    def setup_request(request, version)
       version ||= "3"
 
       request.basic_auth(@username, @password)
