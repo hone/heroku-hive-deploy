@@ -15,11 +15,14 @@ class Heroku::Command::Deploy < Heroku::Command::BaseWithApp
     Okyakusan.start do |client|
       get_url, put_url = create_source(client)
 
+      resp = client.get("/apps/#{app}/config-vars")
+      env  = JSON.parse(resp.body)
+
       Dir.mktmpdir do |dir|
         tar_file = "#{dir}/build.tgz"
 
         display "Preparing build.tgz from #{git_uri}"
-        git_version = prepare_tar(dir, git_uri)
+        git_version = prepare_tar(dir, git_uri, env)
         display "Uploading source code to #{put_url}"
         upload_code(tar_file, put_url)
       end
@@ -37,11 +40,23 @@ class Heroku::Command::Deploy < Heroku::Command::BaseWithApp
   end
 
   private
-  def app_build
-    `bundle install`
+  def app_build(env)
+    change_env(env) do
+      `bundle install`
+    end
   end
 
-  def prepare_tar(tmpdir, uri)
+  def change_env(env)
+    old_env = ENV.to_h
+    env.each {|key, value| ENV[key] = value }
+
+    yield
+
+    (env.keys - old_env.keys).each {|key| ENV.delete(key) }
+    old_env.each {|key, value| ENV[key] = value }
+  end
+
+  def prepare_tar(tmpdir, uri, env)
     git_version = nil
 
     Dir.chdir(tmpdir) do
@@ -50,7 +65,7 @@ class Heroku::Command::Deploy < Heroku::Command::BaseWithApp
       `git clone #{uri} #{dir}`
 
       Dir.chdir(dir) do
-        app_build
+        app_build(env)
         git_version = `git rev-parse HEAD`.chomp
         `tar czfv ../build.tgz *`
       end
