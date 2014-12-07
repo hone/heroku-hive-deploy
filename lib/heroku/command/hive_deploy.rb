@@ -1,4 +1,4 @@
-require_relative '../../../vendor/bundle/bundler/setup'
+require_relative '../../../vendor/setup'
 require 'okyakusan'
 require 'tmpdir'
 require 'json'
