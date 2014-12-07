@@ -5,8 +5,8 @@ require 'json'
 require 'uri'
 require 'net/http'
 
-class Heroku::Command::HiveDeploy < Heroku::Command::BaseWithApp
-  def index
+class Heroku::Command::Deploy < Heroku::Command::BaseWithApp
+  def hive
     git_uri = args.shift
     raise Heroku::Command::CommandFailed, "No git uri supplied.\nSpecify which git uri to package using as an argument" unless git_uri
     git_version = nil
