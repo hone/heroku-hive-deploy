@@ -7,8 +7,8 @@ require 'net/http'
 
 class Heroku::Command::HiveDeploy < Heroku::Command::BaseWithApp
   def index
-    git_uri = options[:git]
-    raise Heroku::Command::CommandFailed, "No git uri supplied.\nSpecify which git uri to package using --git <uri>" unless git_uri
+    git_uri = args.shift
+    raise Heroku::Command::CommandFailed, "No git uri supplied.\nSpecify which git uri to package using as an argument" unless git_uri
     git_version = nil
     output_stream_url = nil
 
@@ -18,7 +18,9 @@ class Heroku::Command::HiveDeploy < Heroku::Command::BaseWithApp
       Dir.mktmpdir do |dir|
         tar_file = "#{dir}/build.tgz"
 
+        display "Preparing build.tgz from #{git_uri}"
         git_version = prepare_tar(dir, git_uri)
+        display "Uploading source code to #{put_url}"
         upload_code(tar_file, put_url)
       end
 
@@ -38,14 +40,18 @@ class Heroku::Command::HiveDeploy < Heroku::Command::BaseWithApp
   def prepare_tar(tmpdir, uri)
     git_version = nil
 
-    Dir.chdir(dir) do
-      `git clone #{uri} build`
-      git_version = `git rev-parse HEAD`.chomp
+    Dir.chdir(tmpdir) do
+      dir = "build"
+
+      `git clone #{uri} #{dir}`
 
       Dir.chdir(dir) do
+        git_version = `git rev-parse HEAD`.chomp
         `bundle install`
         `tar czfv ../build.tgz *`
       end
+
+      `cp build.tgz /tmp`
     end
 
     git_version
@@ -59,13 +65,13 @@ class Heroku::Command::HiveDeploy < Heroku::Command::BaseWithApp
   end
 
   def upload_code(tar_file, put_url)
-    `curl "#{put_url}" -X PUT -H 'Content-Type:' --data-binary #{tar_file}`
+    `curl "#{put_url}" -X PUT -H 'Content-Type:' --data-binary @#{tar_file}`
   end
 
   def stream_content(url, io = $stdout)
     uri = URI(url)
 
-    Net::HTTP.start(uri.host, uri.port) do |http|
+    Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
       request = Net::HTTP::Get.new uri
 
       http.request request do |response|
