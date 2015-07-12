@@ -7,8 +7,8 @@ module Okyakusan
     def initialize(http)
       @http     = http
       netrc     = Netrc.read
-      @username = netrc["api.heroku.com"].first
-      @password = netrc["api.heroku.com"].last
+      @username = netrc["api.heroku.com"][0]
+      @password = netrc["api.heroku.com"][1]
     end
 
     %w(get delete).each do |method_name|
